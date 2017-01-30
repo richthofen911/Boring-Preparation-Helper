@@ -1,0 +1,60 @@
+
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
+import android.content.IntentSender;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+
+/**
+ * Created by yli on 30/01/17.
+ */
+
+public class TurnOnFeatures {
+    private static final String TAG = "TurnOnFeatures";
+
+    public static void turnOnBluetooth(){
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if(!bluetoothAdapter.isEnabled())
+            bluetoothAdapter.enable();
+    }
+
+    public static void turnOnLocationService(final Activity currentActivity, GoogleApiClient googleApiClient){
+        LocationRequest locationRequest = LocationRequest.create();
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest)
+                .setAlwaysShow(true);
+
+        PendingResult<LocationSettingsResult> locationResult = LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+
+        locationResult.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        Log.e(TAG, "statusCheck: location service enabled");
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        try {
+                            status.startResolutionForResult(currentActivity, Constants.FEATURE_REQUEST_CODE_ENABLE_LOCATION);
+                        } catch (IntentSender.SendIntentException e) {
+                            Log.e(TAG, "statusCheck: " + e.toString());
+                        }
+                        break;
+                }
+            }
+        });
+    }
+}
