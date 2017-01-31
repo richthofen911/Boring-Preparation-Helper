@@ -30,7 +30,7 @@ public class TurnOnFeatures {
             bluetoothAdapter.enable();
     }
 
-    public static void turnOnLocationService(final Activity currentActivity, GoogleApiClient googleApiClient){
+    public static void turnOnLocationService(final Activity currentActivity, GoogleApiClient googleApiClient, FeatureCallback featureCallback){
         LocationRequest locationRequest = LocationRequest.create();
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest)
@@ -45,6 +45,7 @@ public class TurnOnFeatures {
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         Log.e(TAG, "statusCheck: location service enabled");
+                        featureCallback.onFeatureTurnedOn();
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try {
