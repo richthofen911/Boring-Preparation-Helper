@@ -1,8 +1,13 @@
+package net.callofdroidy.boringfeaturepanel;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -21,16 +26,17 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
  * Created by yli on 30/01/17.
  */
 
-public class TurnOnFeatures {
-    private static final String TAG = "TurnOnFeatures";
+public class EnableFeatures {
+    private static final String TAG = "EnableFeatures";
 
-    public static void turnOnBluetooth(){
+    public static void enableBluetooth(){
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(!bluetoothAdapter.isEnabled())
             bluetoothAdapter.enable();
     }
 
-    public static void turnOnLocationService(final Activity currentActivity, GoogleApiClient googleApiClient, FeatureCallback featureCallback){
+    public static void enableLocationService(final AppCompatActivity currentActivity, GoogleApiClient googleApiClient,
+                                             final FeatureCallback featureCallback, final int requestCode){
         LocationRequest locationRequest = LocationRequest.create();
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
                 .addLocationRequest(locationRequest)
@@ -49,7 +55,7 @@ public class TurnOnFeatures {
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try {
-                            status.startResolutionForResult(currentActivity, Constants.FEATURE_REQUEST_CODE_ENABLE_LOCATION);
+                            status.startResolutionForResult(currentActivity, requestCode);
                         } catch (IntentSender.SendIntentException e) {
                             Log.e(TAG, "statusCheck: " + e.toString());
                         }
@@ -57,5 +63,18 @@ public class TurnOnFeatures {
                 }
             }
         });
+    }
+
+    public static boolean checkNetworkConnection(AppCompatActivity currentActivity, BroadcastReceiver receiver){
+        ConnectivityManager cm = (ConnectivityManager)currentActivity.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+        if(!isConnected){
+            IntentFilter networkStateFilter = new IntentFilter();
+            networkStateFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+            currentActivity.registerReceiver(receiver, networkStateFilter);
+            return false;
+        }else
+            return true;
     }
 }
