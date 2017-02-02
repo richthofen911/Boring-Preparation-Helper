@@ -1,1 +1,1 @@
-include ':app', ':boringfeaturesenabler'
+include ':app'

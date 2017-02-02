@@ -1,6 +1,5 @@
 package net.callofdroidy.boringfeaturepanel;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,6 +20,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.tasks.RuntimeExecutionException;
 
 /**
  * Created by yli on 30/01/17.
@@ -31,8 +31,10 @@ public class EnableFeatures {
 
     public static void enableBluetooth(){
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(!bluetoothAdapter.isEnabled())
-            bluetoothAdapter.enable();
+        if(bluetoothAdapter != null)
+            if(!bluetoothAdapter.isEnabled())
+                bluetoothAdapter.enable();
+        else throw new RuntimeException("No Bluetooth Adapter Found");
     }
 
     public static void enableLocationService(final AppCompatActivity currentActivity, GoogleApiClient googleApiClient,
@@ -51,10 +53,11 @@ public class EnableFeatures {
                 switch (status.getStatusCode()) {
                     case LocationSettingsStatusCodes.SUCCESS:
                         Log.e(TAG, "statusCheck: location service enabled");
-                        featureCallback.onFeatureTurnedOn();
+                        featureCallback.onFeatureEnabled();
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
                         try {
+                            // need the currentActivity override onActivityResult
                             status.startResolutionForResult(currentActivity, requestCode);
                         } catch (IntentSender.SendIntentException e) {
                             Log.e(TAG, "statusCheck: " + e.toString());
